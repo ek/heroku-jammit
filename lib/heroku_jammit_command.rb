@@ -2,23 +2,25 @@ module Heroku::Command
   class Jammit < BaseWithApp
 
     def index
-      display "===== Compiling assets..."
+      is_root?
 
-      %x{ jammit -f }
+      display "===== Compiling assets...", false
 
-      display "===== Commiting assets..."
+      run "jammit -f"
 
-      commite_assets
-      #%x{ git commit -am 'assets' }
+      display "===== Commiting assets...", false
+
+      commit_assets
+
+      display "===== Done..."
     end
 
     private
 
-      def commite_assets
+      def commit_assets
         file = open(config_file_path) {|f| YAML.load(f) }
         package_dir = "public/" + (file["package_path"] || "assets")
-        git add package_dir
-        git commit -m "assets #{Time.now}"
+        run "git add '#{package_dir}' && git commit -m 'assets #{formatted_date(Time.now)}'"
       end
 
       def config_file_path
@@ -28,6 +30,27 @@ module Heroku::Command
       def missing_config_file?
         !File.exists? config_file_path
       end
+
+      def is_root?
+        if missing_config_file?
+          display "app rails not found!, you need stay on the root of one rails app"
+          exit
+        end
+      end
+
+      def run(cmd)
+        begin
+          shell(cmd)
+          display "[OK]"
+        rescue
+          display "[FAIL]"
+        end
+      end
+
+      def formatted_date(date)
+        date.strftime("%A %d, %Y")
+      end
+
   end
 end
 
