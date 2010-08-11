@@ -5,4 +5,5 @@ rescue LoadError
 end
 require File.dirname(__FILE__) + '/lib/heroku_jammit_command'
 require File.dirname(__FILE__) + '/lib/help'
+require 'yaml'
 
